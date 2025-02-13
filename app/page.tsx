@@ -20,7 +20,10 @@ import { FiPackage, FiClock, FiCheckCircle, FiXCircle,FiTrendingUp,FiTrendingDow
 import Image from "next/image";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
+import { format } from "date-fns";
 const data = [
   { name: "Initiated", value: 30, color: "#E0E0E0" }, // Light gray
   { name: "Pending", value: 20, color: "#A855F7" }, // Purple
@@ -50,6 +53,10 @@ export default function Dashboard() {
   const formattedBalance = formatIndianCurrency(currentBalance);
   const [isClient, setIsClient] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isBranchOpen, setBranchOpen] = useState(false);
+  const [isRangeOpen, setRangeOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+
   useEffect(() => {
     setIsClient(true); // Ensures this runs only on the client side
   }, []);
@@ -209,38 +216,66 @@ export default function Dashboard() {
                 <button className="text-violet-900 hover:text-blue-700 ">Get Started →</button>
               </div>
             </div>
-            <div className="text-sm flex flex-col sm:flex-row justify-between items-center w-full px-4 py-2 space-y-2 sm:space-y-0">
-  {/* Left: Branch Dropdown (Aligned to Left Corner) */}
-  <div className="relative  border border-gray-300 rounded-lg px-6 py-2 w-full sm:w-auto">
-    <select className="appearance-none bg-transparent w-full focus:outline-none">
-      <option>All Branches</option>
-      <option>Branch 1</option>
-      <option>Branch 2</option>
-    </select>
-    <ChevronDown className="absolute right-2 top-3 h-4 w-4 text-gray-500" />
+            
+            <div className="text-sm flex flex-col sm:flex-row justify-between items-center w-full px-6 py-2 space-y-3 sm:space-y-0 sm:space-x-4">
+  
+  {/* Left: Branch Dropdown */}
+  <div className="relative border border-gray-300 shadow rounded-lg px-6 py-2 w-full sm:w-auto cursor-pointer">
+    <div className="flex justify-between items-center" onClick={() => setBranchOpen(!isBranchOpen)}>
+      <span className="text-gray-700 font-medium">All Branches</span>
+      <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${isBranchOpen ? "rotate-180" : ""}`} />
+    </div>
+
+    {/* Dropdown Menu */}
+    {isBranchOpen && (
+      <div className="absolute left-0 mt-2 w-48 bg-gray-100 border border-gray-300 shadow-lg rounded-lg z-10">
+        <ul className="py-2">
+          <li className="px-4 py-2 hover:bg-gray-300 cursor-pointer">All Branches</li>
+          <li className="px-4 py-2 hover:bg-gray-300 cursor-pointer">Branch 1</li>
+          <li className="px-4 py-2 hover:bg-gray-300 cursor-pointer">Branch 2</li>
+        </ul>
+      </div>
+    )}
   </div>
 
-  {/* Right Side: Custom Range Dropdown & Calendar (Aligned to Right Corner) */}
-  <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+  {/* Right Side: Custom Range Dropdown & Calendar */}
+  <div className="flex flex-col sm:flex-row w-full sm:w-auto space-y-3 sm:space-y-0 sm:space-x-4">
+    
     {/* Custom Range Dropdown */}
-    <div className="relative border border-gray-300e rounded-lg px-6 py-2 shadow w-full sm:w-auto">
-      <select className="appearance-none bg-transparent w-full focus:outline-none">
-        <option>Custom Range</option>
-        <option>Last 7 Days</option>
-        <option>Last 30 Days</option>
-      </select>
-      <ChevronDown className="absolute right-2 top-3 h-4 w-4 text-gray-500" />
+    <div className="relative border border-gray-300 shadow rounded-lg px-6 py-2 w-full sm:w-auto cursor-pointer">
+      <div className="flex justify-between items-center" onClick={() => setRangeOpen(!isRangeOpen)}>
+        <span className="text-gray-700 font-medium">Custom Range</span>
+        <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${isRangeOpen ? "rotate-180" : ""}`} />
+      </div>
+
+      {/* Dropdown Menu */}
+      {isRangeOpen && (
+        <div className="absolute left-0 mt-2 w-56 bg-gray-100 border border-gray-300 shadow-lg rounded-lg z-10">
+          <ul className="py-2">
+            <li className="px-4 py-2 hover:bg-gray-300 cursor-pointer">Custom Range</li>
+            <li className="px-4 py-2 hover:bg-gray-300 cursor-pointer">Last 7 Days</li>
+            <li className="px-4 py-2 hover:bg-gray-300 cursor-pointer">Last 30 Days</li>
+          </ul>
+        </div>
+      )}
     </div>
 
-    {/* Calendar Icon + Date */}
-    <div className="flex items-center space-x-2 border border-gray-300 rounded-lg px-4 py-2 shadow w-full sm:w-auto">
-     
-      <span className="text-gray-700 font-medium">March 2020</span>
-      <Calendar className="h-5 w-5 text-gray-500" />
+    {/* Calendar Picker */}
+    <div className="relative w-full sm:w-auto">
+      <div className="flex justify-between items-center space-x-2 border border-gray-300 rounded-lg px-4 py-2 shadow w-full sm:w-auto cursor-pointer">
+        <DatePicker
+          selected={selectedDate}
+          onChange={(date) => setSelectedDate(date)}
+          dateFormat="MMMM yyyy"
+          showMonthYearPicker
+          className="w-[100px] outline-none bg-transparent text-gray-700 font-medium cursor-pointer"
+        />
+        <Calendar className="h-5 w-5 text-gray-500" />
+      </div>
     </div>
+
   </div>
 </div>
-
 
 
 <div className="bg-white p-6 rounded-lg border border-white shadow">
