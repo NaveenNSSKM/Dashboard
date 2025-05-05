@@ -76,12 +76,13 @@ const jobLevelData = [
 ];
 
 // Data for Revenue chart
-const revenueData = [
-  { name: '$0-1M: 20%', value: 20, color: '#1a365d' },
-  { name: '$1-10M: 25%', value: 25, color: '#2563eb' },
-  { name: '$10-50M: 15%', value: 15, color: '#3b82f6' },
-  { name: '$50-100M: 10%', value: 10, color: '#0d9488' },
-  { name: '$100M+: 30%', value: 30, color: '#1e293b' }
+const geographyData = [
+  { name: 'America', value: 30, color: '#1a365d' },
+  { name: 'India', value: 30, color: '#2563eb' },
+  { name: 'South Africa', value: 10, color: '#6b7280' },
+  { name: 'Australia', value: 20, color: '#1e293b' },
+  { name: 'Europe', value: 10, color: '#0d9488' },
+  
 ];
 
 
@@ -349,18 +350,18 @@ export default function Dashboard() {
               
               {/* Revenue */}
               <div className="flex flex-col items-center">
-                <h3 className="text-gray-500 mb-2 font-semibold">REVENUE</h3>
+                <h3 className="text-gray-500 mb-2 font-semibold">Geographic</h3>
                 <div className="w-full h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={revenueData}
+                        data={geographyData}
                         cx="50%"
                         cy="50%"
                         outerRadius={80}
                         dataKey="value"
                       >
-                        {revenueData.map((entry, index) => (
+                        {geographyData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
@@ -368,7 +369,7 @@ export default function Dashboard() {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                {renderLegend(revenueData)}
+                {renderLegend(geographyData)}
               </div>
             </div>
           </div>
