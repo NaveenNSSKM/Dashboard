@@ -1,438 +1,406 @@
 "use client";
+import { useState } from 'react';
+import { LineChart, BarChart, PieChart, Cell, Pie, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { TooltipProps } from 'recharts';
 
-import React, { useEffect, useState } from "react";
-import { 
-  Wallet, 
-  Bell, 
-  User, 
-  BarChart3, 
-  Package, 
-  Users, 
-  FileText, 
-  Stamp,
-  Barcode,
-  Calendar,
-  ChevronDown,
-  AlertCircle
-} from "lucide-react";
-import { Menu, X } from "lucide-react";
-import { FiPackage, FiClock, FiCheckCircle, FiXCircle,FiTrendingUp,FiTrendingDown } from "react-icons/fi";
-import Image from "next/image";
-import { PieChart, Pie, Cell, Tooltip } from "recharts";
-import { motion, AnimatePresence } from "framer-motion";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+// Sample data for the dashboard
+const campaignMetrics = {
+  impressionsServed: 560354,
+  impressionsRemaining: 440646,
+  campaignCompletion: 56,
+  clicks: 1341,
+  ctr: 0.586
+};
 
-import { format } from "date-fns";
-const data = [
-  { name: "Initiated", value: 30, color: "#E0E0E0" }, // Light gray
-  { name: "Pending", value: 20, color: "#A855F7" }, // Purple
-  { name: "Signed", value: 40, color: "#6B21A8" }, // Dark Purple
-  { name: "Expired", value: 10, color: "#D8B4FE" }, // Light Purple
+interface LegendEntry {
+  name: string;
+  color: string;
+}
+
+const monthlyData = [
+  { month: 'jan', investment: 300, cost: 200, revenue: 400 },
+  { month: 'feb', investment: 250, cost: 150, revenue: 230 },
+  { month: 'mar', investment: 200, cost: 120, revenue: 80 },
+  { month: 'apr', investment: 180, cost: 100, revenue: 250 },
+  { month: 'may', investment: 220, cost: 180, revenue: 350 },
+  { month: 'jun', investment: 150, cost: 120, revenue: 150 },
+  { month: 'jul', investment: 280, cost: 220, revenue: 650 },
+  { month: 'aug', investment: 220, cost: 180, revenue: 320 },
+  { month: 'sep', investment: 580, cost: 400, revenue: 820 },
+  { month: 'oct', investment: 180, cost: 150, revenue: 100 },
+  { month: 'nov', investment: 260, cost: 180, revenue: 280 },
+  { month: 'dec', investment: 340, cost: 220, revenue: 580 }
 ];
-// Custom number formatter for Indian currency format
-const formatIndianCurrency = (number: number) => {
-  const formatter = new Intl.NumberFormat('en-IN', {
-    maximumFractionDigits: 0
-  });
-  return formatter.format(number);
+
+const accountData = [
+  { name: 'DHL EXPRESS (INDIA) PRIVATE LIMITED', identified: 3, engaged: 2, converted: 95 },
+  { name: 'TORRENT INVESTMENTS PRIVATE LIMITED', identified: 2, engaged: 3, converted: 95 },
+  { name: 'SECURITIES & EXCHANGE BOARD OF INDIA', identified: 2, engaged: 1, converted: 97 },
+  { name: 'SVC CO-OPERATIVE BANK LIMITED', identified: 3, engaged: 2, converted: 95 },
+  { name: 'POONAWALLA GROUP', identified: 2, engaged: 1, converted: 97 },
+  { name: 'ABHYUDAYA CO-OPERATIVE BANK LIMITED', identified: 2, engaged: 1, converted: 97 },
+  { name: 'EQUIFAX CREDIT INFORMATION SERVICES PRIVATE LIMITED', identified: 3, engaged: 2, converted: 95 },
+  { name: 'TRENT LIMITED', identified: 8, engaged: 7, converted: 85 },
+  { name: 'WISTRON CORPORATION', identified: 2, engaged: 1, converted: 97 },
+  { name: 'PIRAMAL ENTERPRISES LIMITED', identified: 2, engaged: 1, converted: 97 },
+  { name: 'SOLAR INDUSTRIES INDIA LIMITED', identified: 2, engaged: 1, converted: 97 },
+  { name: 'FIRST DATA (INDIA) PRIVATE LIMITED', identified: 2, engaged: 1, converted: 97 },
+  { name: 'THE HERO GROUP COMPANIES', identified: 2, engaged: 1, converted: 97 },
+  { name: 'HERO MOTOCORP LIMITED', identified: 2, engaged: 1, converted: 97 },
+  { name: 'PINE LABS PRIVATE LIMITED', identified: 2, engaged: 1, converted: 97 },
+  { name: 'PAYTM E-COMMERCE PRIVATE LIMITED', identified: 8, engaged: 7, converted: 85 },
+  { name: 'STAR INDIA PRIVATE LIMITED', identified: 2, engaged: 1, converted: 97 },
+  { name: 'NEWGEN SOFTWARE TECHNOLOGIES LIMITED', identified: 8, engaged: 7, converted: 85 },
+  { name: 'NTPC LIMITED', identified: 8, engaged: 7, converted: 85 },
+  { name: 'EICHER MOTORS LIMITED', identified: 8, engaged: 7, converted: 85 },
+  { name: 'Other (120)', identified: 15, engaged: 5, converted: 80 }
+];
+
+// Data for Company Size chart
+const companySizeData = [
+  { name: '1-10: 15%', value: 15, color: '#1a365d' },
+  { name: '51-200: 25%', value: 25, color: '#3b82f6' },
+  { name: '201-500: 15%', value: 15, color: '#0d9488' },
+  { name: '501-1000: 10%', value: 10, color: '#1e293b' },
+  { name: '1001-3000: 8%', value: 8, color: '#6b7280' },
+  { name: '5000+: 7%', value: 7, color: '#be185d' }
+];
+
+// Data for Job Level chart
+const jobLevelData = [
+  { name: 'C-Suite: 10%', value: 10, color: '#1a365d' },
+  { name: 'Director: 15%', value: 15, color: '#2563eb' },
+  { name: 'Manager: 40%', value: 40, color: '#3b82f6' },
+  { name: 'VP: 15%', value: 15, color: '#1e293b' },
+  { name: 'Other: 20%', value: 20, color: '#0d9488' }
+];
+
+// Data for Revenue chart
+const revenueData = [
+  { name: '$0-1M: 20%', value: 20, color: '#1a365d' },
+  { name: '$1-10M: 25%', value: 25, color: '#2563eb' },
+  { name: '$10-50M: 15%', value: 15, color: '#3b82f6' },
+  { name: '$50-100M: 10%', value: 10, color: '#0d9488' },
+  { name: '$100M+: 30%', value: 30, color: '#1e293b' }
+];
+
+
+const COLORS = [
+  '#282c72', // dark blue
+  '#3c4ec9', // blue
+  '#36a2eb', // light blue
+  '#4bc0c0', // teal
+  '#212121', // black
+  '#757575', // gray
+];
+
+
+
+// Custom Legend component
+const renderLegend = (data: LegendEntry[]) => {
+  return (
+    <div className="mt-4 grid grid-cols-2 gap-2">
+      {data.map((entry: LegendEntry, index: number) => (
+        <div key={`legend-${index}`} className="flex items-center">
+          <div
+            className="w-5 h-5 rounded-sm mr-2"
+            style={{ backgroundColor: entry.color }}
+          ></div>
+          <span className="text-xs text-gray-600">{entry.name}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Custom Tooltip component
+const CustomTooltip: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-2 border border-gray-200 shadow-md rounded">
+        <p className="text-sm">{`${payload[0].name}: ${payload[0].value}%`}</p>
+      </div>
+    );
+  }
+  return null;
 };
 
 export default function Dashboard() {
-  // Format the date consistently
-  const [currentDate] = useState(() => {
-    return new Date().toLocaleDateString('en-US', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      weekday: 'long'
-    });
-  });
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const formatValue = (value: number): string => {
+    return value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value.toString();
+  };
   
-  const [currentBalance] = useState(250000);
-  const formattedBalance = formatIndianCurrency(currentBalance);
-  const [isClient, setIsClient] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isBranchOpen, setBranchOpen] = useState(false);
-  const [isRangeOpen, setRangeOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-
-  useEffect(() => {
-    setIsClient(true); // Ensures this runs only on the client side
-  }, []);
-
-  if (!isClient) return null; // Prevent hydration mismatch by rendering onl
   return (
-    <div className="min-h-screen bg-gray-100">
-        <header className="bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Left Side - Logo & Navigation */}
-          <div className="flex items-center space-x-8">
-            <Image
-              width={75}
-              height={25}
-              src="https://doqfy.in/assets/header/Logo.svg"
-              alt="Logo"
-            />
+    <div className="bg-gray-100 min-h-screen ">
+      <header className="bg-white shadow ">
+        <div className="max-w-7xl mx-auto py-4 px-4">
+          <h1 className="text-2xl font-semibold text-gray-900">Marketing Analytics Dashboard</h1>
+        </div>
+      </header>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-8 text-sm font-semibold">
-              <a href="#" className="text-gray-700 hover:text-gray-900">Services</a>
-              <a href="#" className="text-gray-700 hover:text-gray-900">User Management</a>
-              <a href="#" className="text-gray-700 hover:text-gray-900">My Orders</a>
-              <a href="#" className="text-gray-700 hover:text-gray-900">Reports</a>
-              <a href="#" className="text-gray-700 hover:text-gray-900">Stamp Inventory</a>
-              <a href="#" className="text-gray-700 hover:text-gray-900">Barcode</a>
-              <a href="#" className="text-gray-400 hover:text-gray-200">Invoice</a>
-              <div className="bg-violet-100 text-violet-800 text-xs px-2 py-0.5 rounded-full ml-2">
-                <span>Coming Soon</span>
-              </div>
-            </nav>
-          </div>
-
-          {/* Right Side - Icons & User */}
-          <div className="flex items-center space-x-4">
-            <button className="p-2 hover:bg-gray-100 rounded-full">
-              <Bell className="h-6 w-6 text-gray-600" />
-            </button>
-            <button className="flex items-center space-x-2">
-              <User className="h-6 w-6 text-gray-600" />
-              <span className="hidden md:inline text-gray-700">Michael</span>
-            </button>
-
-            {/* Hamburger Menu - Mobile Only */}
+      <nav className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex space-x-8">
             <button
-              className="md:hidden p-2 rounded-full hover:bg-gray-100"
-              onClick={() => setIsOpen(!isOpen)}
+              className={`px-3 py-4 text-sm font-medium ${activeTab === 'overview' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+              onClick={() => setActiveTab('overview')}
             >
-              {isOpen ? <X className="h-6 w-6 text-gray-600" /> : <Menu className="h-6 w-6 text-gray-600" />}
+              Overview
+            </button>
+            <button
+              className={`px-3 py-4 text-sm font-medium ${activeTab === 'accounts' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+              onClick={() => setActiveTab('accounts')}
+            >
+              Accounts
+            </button>
+            <button
+              className={`px-3 py-4 text-sm font-medium ${activeTab === 'demographics' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+              onClick={() => setActiveTab('demographics')}
+            >
+              Demographics
             </button>
           </div>
         </div>
-
-        {/* Mobile Navigation Dropdown with Animation */}
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-              className="md:hidden mt-2 bg-white shadow-md rounded-lg p-4"
-            >
-              <nav className="flex flex-col space-y-2 text-sm font-semibold">
-                <a href="#" className="text-gray-700 hover:text-gray-900">Services</a>
-                <a href="#" className="text-gray-700 hover:text-gray-900">User Management</a>
-                <a href="#" className="text-gray-700 hover:text-gray-900">My Orders</a>
-                <a href="#" className="text-gray-700 hover:text-gray-900">Reports</a>
-                <a href="#" className="text-gray-700 hover:text-gray-900">Stamp Inventory</a>
-                <a href="#" className="text-gray-700 hover:text-gray-900">Barcode</a>
-                <a href="#" className="text-gray-400 hover:text-gray-200">Invoice</a>
-                <div className="bg-violet-100 min-w-[80px] text-center text-violet-800 text-xs px-2 py-0.5 rounded-full">
-  <span>Coming Soon</span>
-</div>
+      </nav>
 
 
-              </nav>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </header>
+        {/* OverView tab First tab  */}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Sidebar */}
-          <div className="w-full md:w-80 space-y-6">
-  <div className="bg-white rounded-lg shadow p-6">
-    <div className="flex items-center justify-between mb-4">
-      <h2 className="text-lg font-semibold"> 👏 Welcome back, Michael</h2>
-    </div>
-    <div className="text-sm text-gray-400">{currentDate}</div>
-  </div>
-
-
-
-  <div className="bg-white rounded-lg shadow p-6">
-  <div className="flex items-center justify-between mb-4">
-    <div className="flex items-center space-x-2">
-      <h2 className="text-lg font-semibold">My Wallet</h2>
-    </div>
-    {/* Wallet Icon on the Right Side */}
-    <Wallet className="h-5 w-5 text-violet-900" />
-  </div>
-  <div className="mb-2">
-    <div className="text-2xl font-bold">₹ {formattedBalance}</div>
-    <div className="text-sm text-gray-400">Current Balance</div>
-  </div>
-  {/* Underlined Notify Admin Button */}
-  <button className="text-sm text-violet-900 hover:text-violet-700 ">
-    Running low?<span className="underline">Notify admin</span>  now
-  </button>
-</div>
-
-
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4">Pending Actions</h2>
-              <div className="space-y-4 max-h-64 overflow-y-auto">
-                {[1, 2, 3,4,5].map((item) => (
-                  <div key={item} className="p-4 bg-gray-100 rounded-lg">
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-sm font-medium">#TRD35468</span>
-                      <span className="text-xs font-semibold bg-gray-200 text-gray-800 px-2 py-1 rounded-md">
-  10 days left
-</span>
-
+      <main className="max-w-7xl mx-auto py-6 px-4">
+        {activeTab === 'overview' && (
+          <>
+            {/* Campaign Metrics */}
+            <div className="bg-white shadow rounded-lg mb-6">
+              <div className="flex flex-wrap">
+                <div className="w-full md:w-1/5 p-4 bg-[#005A9C] text-white rounded-l-lg md:border-b-0 md:border-r">
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    <div>
+                      <p className="text-xs">IMPRESSIONS SERVED</p>
+                      <p className="font-bold text-lg">{formatValue(campaignMetrics.impressionsServed)}</p>
                     </div>
-                    <p className="text-sm text-gray-600">
-                      2 files are waiting to be uploaded
-                    </p>
                   </div>
-                ))}
+                </div>
+                <div className="w-full md:w-1/5 p-4 bg-[#00A6C6] text-white md:border-b-0 md:border-r">
+                  <div className="flex items-center">
+                  <svg  className="w-5 h-5 mr-2 " viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <g fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7z"/>
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M17 7l-1.5 1.5"/>
+  </g>
+</svg>
+                    <div>
+                      <p className="text-xs">IMPRESSIONS REMAINING</p>
+                      <p className="font-bold text-lg">{formatValue(campaignMetrics.impressionsRemaining)}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="w-full md:w-1/5 p-4 bg-[#0094F0] text-white md:border-b-0 md:border-r">
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div>
+                      <p className="text-xs">CAMPAIGN COMPLETION</p>
+                      <p className="font-bold text-lg">{campaignMetrics.campaignCompletion}%</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="w-full md:w-1/5 p-4 bg-[#5C28C0] text-white md:border-b-0 md:border-r">
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path>
+                    </svg>
+                    <div>
+                      <p className="text-xs">CLICKS</p>
+                      <p className="font-bold text-lg">{formatValue(campaignMetrics.clicks)}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="w-full md:w-1/5 p-4 bg-[#00C7C7] text-white rounded-r-lg md:border-b-0 md:border-r">
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
+                    <div>
+                      <p className="text-xs">CTR</p>
+                      <p className="font-bold text-lg">{campaignMetrics.ctr}%</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Financial Charts */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {/* Cost & Revenue Chart */}
+              <div className="bg-white shadow rounded-lg p-4">
+                <h2 className="text-gray-500 text-center mb-4">Custos & Receitas</h2>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={monthlyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [`R$ ${value}`, '']} />
+                    <Line type="monotone" dataKey="investment" name="Investimento Ads" stroke="#384152" strokeWidth={2} dot={{ r: 3 }} />
+                    <Line type="monotone" dataKey="cost" name="Custo de Vendas" stroke="#5B9BD5" strokeWidth={2} dot={{ r: 3 }} />
+                    <Line type="monotone" dataKey="revenue" name="Receita Vendas" stroke="#00B0F0" strokeWidth={2} dot={{ r: 3 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Results Chart */}
+              <div className="bg-white shadow rounded-lg p-4">
+                <h2 className="text-gray-500 text-center mb-4">Resultado</h2>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={monthlyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [`R$ ${value}`, '']} />
+                    <Bar dataKey="revenue" fill="#1E90FF" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </>
+        )}
+
+
+
+
+          {/* accounts tab Second tab  */}
+
+        {activeTab === 'accounts' && (
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-gray-700 text-xl font-semibold mb-4">Redhat Report - Modified</h2>
+            <div className="flex items-center mb-4">
+              <div className="flex items-center mr-4">
+                <div className="w-3 h-3 rounded-full bg-indigo-400 mr-2"></div>
+                <span className="text-sm text-gray-600">Identified</span>
+              </div>
+              <div className="flex items-center mr-4">
+                <div className="w-3 h-3 rounded-full bg-orange-400 mr-2"></div>
+                <span className="text-sm text-gray-600">Engaged</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 rounded-full bg-lime-500 mr-2"></div>
+                <span className="text-sm text-gray-600">Converted</span>
+              </div>
+            </div>
+            <div className="overflow-x-auto max-h-96">
+              <table className="min-w-full">
+                <tbody>
+                  {accountData.map((account, index) => (
+                    <tr key={index}>
+                      <td className="py-2 pr-8 text-sm font-medium text-gray-700" style={{ width: '30%' }}>
+                        {account.name}
+                      </td>
+                      <td className="py-2" style={{ width: '70%' }}>
+                        <div className="flex h-6 rounded-xs overflow-hidden">
+                          <div className="bg-indigo-400" style={{ width: `${account.identified}%` }}></div>
+                          <div className="bg-orange-400" style={{ width: `${account.engaged}%` }}></div>
+                          <div className="bg-lime-500" style={{ width: `${account.converted}%` }}></div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+
+
+        {/* demographics tab last tab  */}
+        {activeTab === 'demographics' && (
+        <div className="bg-gray-100 p-4">
+          <div className="bg-white shadow-md rounded-xl p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Company Size */}
+              <div className="flex flex-col items-center">
+                <h3 className="text-gray-500 mb-2 font-semibold">COMPANY SIZE</h3>
+                <div className="w-full h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={companySizeData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        dataKey="value"
+                      >
+                        {companySizeData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                {renderLegend(companySizeData)}
+              </div>
+              
+              {/* Job Level */}
+              <div className="flex flex-col items-center">
+                <h3 className="text-gray-500 mb-2 font-semibold">JOB LEVEL</h3>
+                <div className="w-full h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={jobLevelData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        dataKey="value"
+                      >
+                        {jobLevelData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                {renderLegend(jobLevelData)}
+              </div>
+              
+              {/* Revenue */}
+              <div className="flex flex-col items-center">
+                <h3 className="text-gray-500 mb-2 font-semibold">REVENUE</h3>
+                <div className="w-full h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={revenueData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        dataKey="value"
+                      >
+                        {revenueData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                {renderLegend(revenueData)}
               </div>
             </div>
           </div>
-
-          {/* Main Content */}
-          <div className="flex-1 space-y-6">
-          <div className="text-left text-lg font-semibold">Frequently Used</div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-             
-              <div className="bg-white p-6 rounded-lg border-2 border-violet-900 shadow">
-                <h3 className="text-sm font-semibold mb-4">Contract Execution Upload</h3>
-                <p className="text-gray-600 mb-4 text-xs">Lorem ipsum dolor sit ametLorem ipsum dolor sit ametLorem ipsum dolor sit amet</p>
-                <button className="text-violet-900 hover:text-blue-700">Get Started →</button>
-              </div>
-              <div className="bg-white p-6 rounded-lg border-2 border-violet-900 shadow">
-                <h3 className="text-sm font-semibold mb-4">E-Stamp Services</h3>
-                <p className="text-gray-600 mb-4  text-xs">Lorem ipsum dolor sit ametLorem ipsum dolor sit ametLorem ipsum dolor sit amet</p>
-                <button className="text-violet-900 hover:text-blue-700">Get Started →</button>
-              </div>
-              <div className="bg-white p-6 rounded-lg border-2 border-violet-900 shadow">
-                <h3 className="text-sm font-semibold mb-4">E-Signature Services</h3>
-                <p className="text-gray-600 mb-4  text-xs">Lorem ipsum dolor sit ametLorem ipsum dolor sit ametLorem ipsum dolor sit ametLorem</p>
-                <button className="text-violet-900 hover:text-blue-700 ">Get Started →</button>
-              </div>
-            </div>
-            
-            <div className="text-sm flex flex-col sm:flex-row justify-between items-center w-full px-6 py-2 space-y-3 sm:space-y-0 sm:space-x-4">
-  
-  {/* Left: Branch Dropdown */}
-  <div className="relative border border-gray-300 shadow rounded-lg px-6 py-2 w-full sm:w-auto cursor-pointer">
-    <div className="flex justify-between items-center" onClick={() => setBranchOpen(!isBranchOpen)}>
-      <span className="text-gray-700 font-medium">All Branches</span>
-      <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${isBranchOpen ? "rotate-180" : ""}`} />
-    </div>
-
-    {/* Dropdown Menu */}
-    {isBranchOpen && (
-      <div className="absolute left-0 mt-2 w-48 bg-gray-100 border border-gray-300 shadow-lg rounded-lg z-10">
-        <ul className="py-2">
-          <li className="px-4 py-2 hover:bg-gray-300 cursor-pointer">All Branches</li>
-          <li className="px-4 py-2 hover:bg-gray-300 cursor-pointer">Branch 1</li>
-          <li className="px-4 py-2 hover:bg-gray-300 cursor-pointer">Branch 2</li>
-        </ul>
-      </div>
-    )}
-  </div>
-
-  {/* Right Side: Custom Range Dropdown & Calendar */}
-  <div className="flex flex-col sm:flex-row w-full sm:w-auto space-y-3 sm:space-y-0 sm:space-x-4">
-    
-    {/* Custom Range Dropdown */}
-    <div className="relative border border-gray-300 shadow rounded-lg px-6 py-2 w-full sm:w-auto cursor-pointer">
-      <div className="flex justify-between items-center" onClick={() => setRangeOpen(!isRangeOpen)}>
-        <span className="text-gray-700 font-medium">Custom Range</span>
-        <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${isRangeOpen ? "rotate-180" : ""}`} />
-      </div>
-
-      {/* Dropdown Menu */}
-      {isRangeOpen && (
-        <div className="absolute left-0 mt-2 w-56 bg-gray-100 border border-gray-300 shadow-lg rounded-lg z-10">
-          <ul className="py-2">
-            <li className="px-4 py-2 hover:bg-gray-300 cursor-pointer">Custom Range</li>
-            <li className="px-4 py-2 hover:bg-gray-300 cursor-pointer">Last 7 Days</li>
-            <li className="px-4 py-2 hover:bg-gray-300 cursor-pointer">Last 30 Days</li>
-          </ul>
         </div>
       )}
-    </div>
 
-    {/* Calendar Picker */}
-    <div className="relative w-full sm:w-auto">
-      <div className="flex justify-between items-center space-x-2 border border-gray-300 rounded-lg px-4 py-2 shadow w-full sm:w-auto cursor-pointer">
-        <DatePicker
-          selected={selectedDate}
-          onChange={(date) => setSelectedDate(date)}
-          dateFormat="MMMM yyyy"
-          showMonthYearPicker
-          className="w-[100px] outline-none bg-transparent text-gray-700 font-medium cursor-pointer"
-        />
-        <Calendar className="h-5 w-5 text-gray-500" />
-      </div>
-    </div>
-
-  </div>
-</div>
-
-
-<div className="bg-white p-6 rounded-lg border border-white shadow">
-      {/* Heading & View All Link */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-700">Order Details</h2>
-        <a href="#" className="text-violet-900 underline text-sm">View All</a>
-      </div>
-
-      {/* Order Summary Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Total Orders */}
-        <div className="bg-violet-50 p-6 rounded-lg shadow relative">
-          <FiPackage className="text-purple-700 text-4xl absolute top-4 right-4" />
-          <div className="text-2xl font-bold text-gray-800">18</div>
-          <div className="text-sm text-gray-400 mt-2">Total Orders</div>
-          <div className="flex items-center gap-1 text-xs mt-1">
-            <FiTrendingUp className="text-green-500" />
-            <span className="text-gray-500">+2.4%</span>
-          </div>
-          
-        </div>
-
-        {/* In Progress */}
-        <div className="bg-violet-50 p-6 rounded-lg shadow relative">
-          <FiClock className="text-purple-700 text-4xl absolute top-4 right-4" />
-          <div className="text-2xl font-bold text-gray-800">10</div>
-          <div className="text-sm text-gray-400 mt-2">In Progress</div>
-          <div className="flex items-center gap-1 text-xs mt-1">
-            <FiTrendingUp className="text-green-500" />
-            <span className="text-gray-500">+2.4%</span>
-          </div>
-         
-        </div>
-
-        {/* Completed Order */}
-        <div className="bg-violet-50 p-6 rounded-lg shadow relative">
-          <FiCheckCircle className="text-purple-700 text-4xl absolute top-4 right-4" />
-          <div className="text-2xl font-bold text-gray-800">5</div>
-          <div className="text-sm text-gray-400 mt-2">Completed Order</div>
-          <div className="flex items-center gap-1 text-xs mt-1">
-            <FiTrendingUp className="text-green-500" />
-            <span className="text-gray-500">+2.4%</span>
-          </div>
-          
-        </div>
-
-        {/* Cancelled Order */}
-        <div className="bg-violet-50 p-6 rounded-lg shadow relative">
-          <FiXCircle className="text-purple-700 text-4xl absolute top-4 right-4" />
-          <div className="text-2xl font-bold text-gray-800">3</div>
-          <div className="text-sm text-gray-400 mt-2">Cancelled Order</div>
-          <div className="flex items-center gap-1 text-xs mt-1">
-            <FiTrendingDown className="text-red-500" />
-            <span className="text-gray-500">+2.4%</span>
-          </div>
-        
-        </div>
-      </div>
-    </div>
-
-    <div className="flex flex-col md:flex-row md:space-x-6 space-y-4 md:space-y-0">
-  {/* E-Sign Count (First Card) */}
-  <div className="bg-white p-6 rounded-md shadow-md w-full">
-    <h3 className="text-lg font-semibold mb-4 border-b pb-2">E-Sign Count</h3>
-    <div className="flex items-center justify-between">
-      {/* Legend */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-        {data.map((item, index) => (
-          <div key={index} className="flex items-center space-x-2">
-            <span
-              className="w-4 h-4 inline-block rounded"
-              style={{ backgroundColor: item.color }}
-            ></span>
-            <span className="text-gray-600 text-sm">{item.name}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Donut Chart */}
-      <div className="w-28 h-28 flex justify-center items-center relative">
-        <PieChart width={110} height={110}>
-          <Pie
-            data={data}
-            dataKey="value"
-            cx="50%"
-            cy="50%"
-            innerRadius={35}
-            outerRadius={45}
-            fill="#8884d8"
-            paddingAngle={2}
-          >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Pie>
-        </PieChart>
-        <div className="absolute text-center">
-          <p className="text-xs font-bold">30k</p>
-          <p className="text-xs text-gray-600">Initiated</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {/* E-Stamp Count (Second Card) */}
-  <div className="bg-white p-6 rounded-md shadow-md w-full">
-    <h3 className="text-lg font-semibold mb-4 border-b pb-2">E-Stamp Count</h3>
-    <div className="flex items-center justify-between">
-      {/* Legend */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-        {data.map((item, index) => (
-          <div key={index} className="flex items-center space-x-2">
-            <span
-              className="w-4 h-4 inline-block rounded"
-              style={{ backgroundColor: item.color }}
-            ></span>
-            <span className="text-gray-600 text-sm">{item.name}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Donut Chart */}
-      <div className="w-28 h-28 flex justify-center items-center relative">
-        <PieChart width={110} height={110}>
-          <Pie
-            data={data}
-            dataKey="value"
-            cx="50%"
-            cy="50%"
-            innerRadius={35}
-            outerRadius={45}
-            fill="#8884d8"
-            paddingAngle={2}
-          >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Pie>
-        </PieChart>
-        <div className="absolute text-center">
-          <p className="text-xs font-bold">30k</p>
-          <p className="text-xs text-gray-600">Initiated</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-
-    
-    
-             
-            </div>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
