@@ -350,7 +350,7 @@ export default function Dashboard() {
               
               {/* Revenue */}
               <div className="flex flex-col items-center">
-                <h3 className="text-gray-500 mb-2 font-semibold">Geographic</h3>
+                <h3 className="text-gray-500 mb-2 font-semibold">GEOGRAPHIC</h3>
                 <div className="w-full h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
