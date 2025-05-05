@@ -126,7 +126,6 @@ const CustomTooltip: React.FC<TooltipProps<number, string>> = ({ active, payload
 };
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState('overview');
 
   const formatValue = (value: number): string => {
     return value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value.toString();
@@ -140,36 +139,13 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex space-x-8">
-            <button
-              className={`px-3 py-4 text-sm font-medium ${activeTab === 'overview' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-              onClick={() => setActiveTab('overview')}
-            >
-              Overview
-            </button>
-            <button
-              className={`px-3 py-4 text-sm font-medium ${activeTab === 'accounts' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-              onClick={() => setActiveTab('accounts')}
-            >
-              Accounts
-            </button>
-            <button
-              className={`px-3 py-4 text-sm font-medium ${activeTab === 'demographics' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-              onClick={() => setActiveTab('demographics')}
-            >
-              Demographics
-            </button>
-          </div>
-        </div>
-      </nav>
+     
 
 
         {/* OverView tab First tab  */}
 
       <main className="max-w-7xl mx-auto py-6 px-4">
-        {activeTab === 'overview' && (
+       
           <>
             {/* Campaign Metrics */}
             <div className="bg-white shadow rounded-lg mb-6">
@@ -270,14 +246,13 @@ export default function Dashboard() {
               </div>
             </div>
           </>
-        )}
-
+       
 
 
 
           {/* accounts tab Second tab  */}
 
-        {activeTab === 'accounts' && (
+        
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-gray-700 text-xl font-semibold mb-4">Redhat Report - Modified</h2>
             <div className="flex items-center mb-4">
@@ -315,12 +290,12 @@ export default function Dashboard() {
               </table>
             </div>
           </div>
-        )}
+      
 
 
 
         {/* demographics tab last tab  */}
-        {activeTab === 'demographics' && (
+        
         <div className="bg-gray-100 p-4">
           <div className="bg-white shadow-md rounded-xl p-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -398,7 +373,7 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-      )}
+     
 
       </main>
     </div>
